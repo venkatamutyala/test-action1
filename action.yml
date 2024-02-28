@@ -1,4 +1,4 @@
-name: "yolo123321"
+name: "terrafu"
 author: "@VenkataMutyala"
 description: "Abstracts defining actions to push Docker images to desired registry, defaults to ghcr.io"
 branding:
