@@ -1,4 +1,4 @@
-name: "terrafu"
+name: "venkatamutyala-test-action1"
 author: "@VenkataMutyala"
 description: "Abstracts defining actions to push Docker images to desired registry, defaults to ghcr.io"
 branding:
