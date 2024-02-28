@@ -3,9 +3,7 @@ author: "@VenkataMutyala"
 description: "Abstracts defining actions to push Docker images to desired registry, defaults to ghcr.io"
 branding:
   icon: 'box'
-  color: 'yellow'
-
-
+  color: 'red'
 
 inputs:
   # common inputs
@@ -14,222 +12,60 @@ inputs:
     required: false
     default: 'Dockerfile'
 
-  registry:
-    description: 'The container registry to push the image to'
-    required: true
-    default: "ghcr.io"
-
-  registry-username:
-    description: 'The username for authentication to the container registry (defaults to the github.actor)'
-    required: true
-    default: ${{ github.actor }}
-
-  image_name:
-    description: 'Docker image is named after repository'
-    required: true
-    default: ${{ github.repository }} 
-
-  context:
-    description: "A path to the context in which the build will happen, see https://docs.docker.com/engine/reference/commandline/build/"
-    required: false
-    default: "."
-
-  target_directory:
-    description: 'Directory to clone the repository into.'
-    required: false
-    default: "."
-
-  tags:
-    description: 'Comma-separate list of tags for built image.  Defaults to GlueOps tags'
-    required: false
-    default: ''
-
-
   # ghcr
   github_token:
      description: "Personal Access Token (PAT) used to authenticate with the GitHub Container Registry."
      required: false
      default: ${{ github.token }}
 
-
-  # ecr
-  aws_access_key_id:
-    description: 'AWS Access Key ID - to be used in conjunction with `aws_secret_access_key`'
-    required: false
-
-  aws_secret_access_key:
-    description: 'AWS Secret Access Key - to be used in conjunction with `aws_access_key_id`'
-    required: false
-
-  aws_role_to_assume:
-    description: 'AWS IAM Role to assume, when using the GitHub OIDC provider in conjunction with a configured AWS IAM Identity Provider endpoint and instead of access key / secret key pair'
-    required: false
-
-  aws_default_region:
-    description: 'AWS Default Region'
-    required: false
-    default: "us-west-2"
-
-  aws_cli_version:
-    description: 'Version of AWS CLI to use'
-    required: false
-    default: "2.15.19"
-
-
-  # docker hub
-  dockerhub_username:
-    description: 'Docker Hub Username'
-    required: false
-
-  dockerhub_password:
-    description: 'Docker Hub Personal Access Token'
-    required: false
-
-
-
 runs:
   using: "composite"
+  if: >-
+    contains(github.event.comment.body, 'terraform plan') ||
+    contains(github.event.comment.body, 'terraform apply')
+  runs-on: ubuntu-latest
   steps:
-    - name: Configure for AWS if using ECR
-      shell: bash
-      if: contains(inputs.registry, '.dkr.ecr.')
+    - name: Extract Command and Directory
+      id: extract
       run: |
-        echo "::group::Installing AWS CLI..."
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${{ inputs.aws_cli_version }}.zip" -o "awscliv2.zip"
-        unzip -o awscliv2.zip
-        sudo ./aws/install --update
-        aws --version
-        echo "::endgroup::"
+        COMMENT="${{ github.event.comment.body }}"
+        DIRECTORY=""
         
-        echo "::group::Setting AWS Credentials to Environment Variables"
-        # set aws credentials as env vars
-        if [[ -n "${{ inputs.aws_access_key_id }}" ]]; then
-          echo "AWS_ACCESS_KEY_ID=${{ inputs.aws_access_key_id }}" >> $GITHUB_ENV
+        if [[ "$COMMENT" =~ terraform\ plan\ (.+) ]]; then
+          echo "COMMAND=plan" >> $GITHUB_ENV
+          DIRECTORY="${BASH_REMATCH[1]}"
+        elif [[ "$COMMENT" =~ terraform\ apply\ (.+) ]]; then
+          echo "COMMAND=apply" >> $GITHUB_ENV
+          DIRECTORY="${BASH_REMATCH[1]}"
+        elif [[ "$COMMENT" =~ terraform\ yolo\ (.+) ]]; then
+          echo "COMMAND=yolo" >> $GITHUB_ENV
+          DIRECTORY="${BASH_REMATCH[1]}"
         fi
-        if [[ -n "${{ inputs.aws_secret_access_key }}" ]]; then
-          echo "AWS_SECRET_ACCESS_KEY=${{ inputs.aws_secret_access_key }}" >> $GITHUB_ENV
+        
+        # Trim leading and trailing whitespace (including newlines)
+        DIRECTORY=$(echo "$DIRECTORY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # Check if DIRECTORY is empty and exit with code 1 if it is
+        if [ -z "$DIRECTORY" ]; then
+          echo "Error: No directory found."
+          exit 1
         fi
-        if [[ -n "${{ inputs.aws_default_region }}" ]]; then
-          echo "AWS_DEFAULT_REGION=${{ inputs.aws_default_region }}" >> $GITHUB_ENV
-        fi
-        echo "::endgroup::"
-
-    - name: AWS Authentication - IAM Keys
-      if: contains(inputs.registry, '.dkr.ecr.') && inputs.aws_access_key_id != '' && inputs.aws_secret_access_key != ''
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ inputs.aws_access_key_id }}
-        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
-        aws-region: ${{ inputs.aws_default_region }}
-
-    - name: AWS Authentication - AWS IAM Role via OIDC
-      if: contains(inputs.registry, '.dkr.ecr.') && inputs.aws_role_to_assume != ''
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{ inputs.aws_role_to_assume }}
-        aws-region: ${{ inputs.aws_default_region }}
-
-    # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
-    - name: Registry Authentication
-      shell: bash
-      run: |
-        case "${{ inputs.registry }}" in
-          "ghcr.io")
-            echo "${{ inputs.github_token }}" | docker login ${{ inputs.registry }} -u ${{ github.actor }} --password-stdin
-            ;;
-          *".dkr.ecr."*)
-            echo $(aws ecr get-login-password --region ${{ inputs.aws_default_region }}) \
-              | docker login --username AWS --password-stdin ${{ inputs.registry }}
-            ;;
-          "docker.io")
-            echo "${{ inputs.dockerhub_password }}" | docker login -u "${{ inputs.dockerhub_username }}" --password-stdin
-            ;;
-          *)
-            echo "Unsupported registry"
-            exit 1
-            ;;
-        esac
+        
+        echo "DIRECTORY=$DIRECTORY" >> $GITHUB_ENV
+        
 
     - name: Checkout
       uses: actions/checkout@v4
+  
+    - name: terraform plan
+      if: env.COMMAND == 'plan'
+      uses: dflook/terraform-plan@v1
       with:
-        ref: ''
-        path: ${{ inputs.target_directory }}
-    
-    - name: Create GlueOps Tags
-      if: inputs.tags == ''
-      uses: Glueops/github-actions-create-container-tags@main
-      id: create-tags
+        path: ${{ env.DIRECTORY }}
 
-    - name: Build Container
-      shell: bash
-      env:
-        DOCKER_BUILDKIT: '1'
-        IMAGE_NAME: ${{ inputs.image_name }}
+    - name: terraform apply
+      if: env.COMMAND == 'apply'
+      uses: dflook/terraform-apply@v1
+      with:
+        path: ${{ env.DIRECTORY }}
 
-      run: |
-        echo "::group::Set Tags"
-        echo "Event payload: ${{ toJson(github.event_name) }}"
-
-        # Get Tags
-        TAGS="${{ inputs.tags }}"
-        if [[ -z "$TAGS" ]]; then
-          TAGS="${{ steps.create-tags.outputs.tags_csv }}"
-        fi
-
-        # Get Target Ref
-        TARGET_REF="${{ steps.create-tags.outputs.clean_target_ref}}"
-        if [[ -z "$TARGET_REF" ]]; then
-          TARGET_REF="${TAGS%%,*}"
-        fi
-
-        echo "Using Tags: ${TAGS}"
-
-        # convert the image name to lowercase
-        export IMAGE_NAME=$(echo "${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')
-        echo "::endgroup::"
-
-        export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        export GITHUB_URL=https://github.com/${{ github.repository }}
-        
-        IFS=',' read -ra ADDR <<< "$TAGS"
-        DOCKER_TAGS=""
-        for TAG in "${ADDR[@]}"; do
-          DOCKER_TAGS="$DOCKER_TAGS -t ${{ inputs.registry }}/${IMAGE_NAME}:$TAG"
-        done
-        
-        echo "::group::Building the Docker image as ${{ inputs.registry }}/${IMAGE_NAME}:${TARGET_REF} from ${{ inputs.dockerfile }} in ${{ inputs.context }} context ..."
-
-        docker build \
-          --file "${{ inputs.context }}/${{ inputs.dockerfile }}" \
-          --cache-from "${{ inputs.registry }}/${IMAGE_NAME}:latest" \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
-          --build-arg BUILD_DATE="${BUILD_DATE}" \
-          --build-arg GITHUB_SHA="${GITHUB_SHA}" \
-          $DOCKER_TAGS \
-          --label "org.label-schema.build-date=${BUILD_DATE}" \
-          --label "org.label-schema.vcs-url=${GITHUB_URL}" \
-          --label "org.label-schema.vcs-ref=${GITHUB_SHA}" \
-          --label "org.opencontainers.image.created=${BUILD_DATE}" \
-          --label "org.opencontainers.image.source=${GITHUB_URL}" \
-          --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
-          "${{ inputs.context }}"
-
-
-        echo "::endgroup::"
-
-        echo "::group::Inspecting the image ..."
-        docker image ls
-
-
-        echo "Labels:"
-        docker image inspect "${{ inputs.registry }}/${IMAGE_NAME}:${TARGET_REF}" | jq '.[].Config.Labels'
-
-        echo "Env variables:"
-        docker image inspect "${{ inputs.registry }}/${IMAGE_NAME}:${TARGET_REF}" | jq '.[].Config.Env'
-
-        echo "::endgroup::"
-
-        echo "::group::Pushing the image to ${{ inputs.registry }} ..."
-        docker push --all-tags "${{ inputs.registry }}/${IMAGE_NAME}" && echo "Pushed"
-        echo "::endgroup::"
