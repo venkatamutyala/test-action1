@@ -1,4 +1,4 @@
-name: "Build Docker Image and Push to GHCR, Docker Hub, or AWS ECR"
+name: "yolo"
 author: "@VenkataMutyala"
 description: "Abstracts defining actions to push Docker images to desired registry, defaults to ghcr.io"
 branding:
