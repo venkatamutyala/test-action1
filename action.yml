@@ -92,18 +92,18 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Post Workflow Run Link
-      if: github.event.issue.pull_request != null
-      shell: bash
-      run: |
-        COMMENT_URL="${{ github.event.issue.comments_url }}"
-        WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        COMMENT_TEXT="[View workflow Details Run ID: ${{ github.run_id }}]($WORKFLOW_URL)."
+    # - name: Post Workflow Run Link
+    #   if: github.event.issue.pull_request != null
+    #   shell: bash
+    #   run: |
+    #     COMMENT_URL="${{ github.event.issue.comments_url }}"
+    #     WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+    #     COMMENT_TEXT="[View workflow Details Run ID: ${{ github.run_id }}]($WORKFLOW_URL)."
         
-        curl -s -H "Authorization: token ${{ inputs.github_token }}" \
-             -H "Accept: application/vnd.github.v3+json" \
-             -X POST "$COMMENT_URL" \
-             -d "{\"body\":\"$COMMENT_TEXT\"}"
+    #     curl -s -H "Authorization: token ${{ inputs.github_token }}" \
+    #          -H "Accept: application/vnd.github.v3+json" \
+    #          -X POST "$COMMENT_URL" \
+    #          -d "{\"body\":\"$COMMENT_TEXT\"}"
         
 
     - name: Checkout
