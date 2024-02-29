@@ -143,7 +143,10 @@ runs:
 
     - name: Print All Versions
       shell: bash
-      run: echo "All versions: ${{ steps.terraform-version.outputs }}"
+      run: |
+        for key in $(echo '${{ toJson(steps.terraform-version.outputs) }}' | jq -r 'keys[]'); do
+          echo "$key: ${{ steps.terraform-version.outputs[$key] }}"
+        done
   
     - name: terraform plan
       if: env.COMMAND == 'plan'
