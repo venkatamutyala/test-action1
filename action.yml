@@ -121,7 +121,7 @@ runs:
     - name: Wrong formatting found
       if: ${{ failure() && steps.fmt-check.outputs.failure-reason == 'check-failed' }}
       shell: bash
-      run: echo "formatting check failed"
+      run: echo "Please format your terraform correctly. Use 'terraform fmt' or 'tofu fmt'"
 
     - name: terraform validate
       uses: dflook/terraform-validate@v1
