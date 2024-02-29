@@ -120,6 +120,7 @@ runs:
 
     - name: Wrong formatting found
       if: ${{ failure() && steps.fmt-check.outputs.failure-reason == 'check-failed' }}
+      shell: bash
       run: echo "formatting check failed"
 
     - name: terraform validate
@@ -141,6 +142,7 @@ runs:
         backend_config_file: ${{ inputs.backend_config_file }}
 
     - name: Print All Versions
+      shell: bash
       run: echo "All versions: ${{ steps.terraform-version.outputs }}"
   
     - name: terraform plan
