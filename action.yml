@@ -23,6 +23,7 @@ runs:
   steps:
     - name: Post Workflow Run Link
       if: github.event.issue.pull_request != null && always()
+      shell: bash
       run: |
         COMMENT_URL="${{ github.event.issue.comments_url }}"
         WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
