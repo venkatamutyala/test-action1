@@ -171,7 +171,7 @@ runs:
         add_github_comment:  ${{ inputs.add_github_comment }}
 
     - name: terraform apply
-      if: env.COMMAND == 'apply'
+      if: github.ref_name == ${{ inputs.branch_to_apply }}
       uses: dflook/terraform-apply@v1
       with:
         path: ${{ inputs.path }}
