@@ -160,21 +160,11 @@ runs:
         var: ${{ inputs.var }}
         var_file: ${{ inputs.var_file }}
         parallelism: ${{ inputs.parallelism }}
-
-
-        # path: ${{ inputs.path }}
-        # workspace: ${{ inputs.workspace }}
-        # backend_config: ${{ inputs.backend_config }}
-        # backend_config_file: ${{ inputs.backend_config_file }}
-        # variables: ${{ inputs.variables }}
-        # var: ${{ inputs.var }}
-        # var_file: ${{ inputs.var_file }}
-        # parallelism: ${{ inputs.parallelism }}
-        # label: ${{ inputs.label }}
-        # target: ${{ inputs.target }}
-        # replace: ${{ inputs.replace }}
-        # destroy: ${{ inputs.destroy }}
-        # add_github_comment:  ${{ inputs.add_github_comment }}
+        label: ${{ inputs.label }}
+        target: ${{ inputs.target }}
+        replace: ${{ inputs.replace }}
+        destroy: ${{ inputs.destroy }}
+        add_github_comment:  ${{ inputs.add_github_comment }}
 
     - name: terraform apply
       if: env.COMMAND == 'apply'
