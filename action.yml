@@ -65,6 +65,7 @@ inputs:
   backend_type:
     description: The backend plugin name
     required: true
+    
 outputs:
   terraform:
     description: The Terraform version used by the configuration
