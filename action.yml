@@ -66,3 +66,25 @@ runs:
       with:
         path: ${{ env.DIRECTORY }}
 
+
+    - name: Post Workflow Run Link to PR
+      if: always() && github.event_name == 'pull_request'
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const runId = process.env.GITHUB_RUN_ID;
+          const repo = process.env.GITHUB_REPOSITORY;
+          const prNumber = context.payload.pull_request.number;
+          const commentUrl = `https://api.github.com/repos/${repo}/issues/${prNumber}/comments`;
+          const workflowRunUrl = `https://github.com/${repo}/actions/runs/${runId}`;
+
+          const comment = `Workflow run completed. Link to the run: [Workflow Run](${workflowRunUrl})`;
+
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            body: comment
+          });
+
