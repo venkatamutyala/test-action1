@@ -23,6 +23,7 @@ runs:
   steps:
     - name: Extract Command and Directory
       id: extract
+      shell: bash
       run: |
         COMMENT="${{ github.event.comment.body }}"
         DIRECTORY=""
