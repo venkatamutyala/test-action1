@@ -163,7 +163,7 @@ runs:
         add_github_comment:  ${{ inputs.add_github_comment }}
 
     - name: terraform apply
-      if: github.event.pull_request.merged && github.ref_name == 'main'
+      if: github.ref_name == 'main'
       uses: dflook/terraform-apply@v1
       with:
         path: ${{ inputs.path }}
