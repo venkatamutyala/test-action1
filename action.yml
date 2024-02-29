@@ -22,7 +22,7 @@ runs:
   using: "composite"
   steps:
     - name: Post Workflow Run Link
-      if: github.event.issue.pull_request != null && always()
+      if: github.event.issue.pull_request != null
       shell: bash
       run: |
         COMMENT_URL="${{ github.event.issue.comments_url }}"
