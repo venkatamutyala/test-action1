@@ -108,6 +108,40 @@ runs:
 
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: terraform fmt
+      uses: dflook/terraform-fmt-check@v1
+      id: fmt-check
+      with:
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+
+    - name: Wrong formatting found
+      if: ${{ failure() && steps.fmt-check.outputs.failure-reason == 'check-failed' }}
+      run: echo "formatting check failed"
+
+    - name: terraform validate
+      uses: dflook/terraform-validate@v1
+      id: Validation
+      with:
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+
+    - name: Test terraform-version
+      uses: dflook/terraform-version@v1
+      id: Versions
+      with:
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+
+    - name: Print All Versions
+      run: echo "All versions: ${{ steps.terraform-version.outputs }}"
   
     - name: terraform plan
       if: env.COMMAND == 'plan'
@@ -122,6 +156,21 @@ runs:
         var_file: ${{ inputs.var_file }}
         parallelism: ${{ inputs.parallelism }}
 
+
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+        variables: ${{ inputs.variables }}
+        var: ${{ inputs.var }}
+        var_file: ${{ inputs.var_file }}
+        parallelism: ${{ inputs.parallelism }}
+        label: ${{ inputs.label }}
+        target: ${{ inputs.target }}
+        replace: ${{ inputs.replace }}
+        destroy: ${{ inputs.destroy }}
+        add_github_comment:  ${{ inputs.add_github_comment }}
+
     - name: terraform apply
       if: env.COMMAND == 'apply'
       uses: dflook/terraform-apply@v1
@@ -134,12 +183,22 @@ runs:
         var: ${{ inputs.var }}
         var_file: ${{ inputs.var_file }}
         parallelism: ${{ inputs.parallelism }}
-        label: ${{ inputs. }}
+        label: ${{ inputs.label }}
         auto_approve: ${{ inputs.auto_approve }}
         target: ${{ inputs.target }}
         replace: ${{ inputs.replace }}
         destroy: ${{ inputs.destroy }}
         plan_path: ${{ inputs.plan_path }}
+
+
+
+# #unlock state:
+#         path: ${{ inputs.path }}
+#         workspace: ${{ inputs.workspace }}
+#         backend_config: ${{ inputs.backend_config }}
+#         backend_config_file: ${{ inputs.backend_config_file }}
+#         lock_id: ${{ inputs.lock_id }}
+
 
 
 
