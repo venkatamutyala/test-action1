@@ -21,6 +21,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Post Workflow Run Link
+      if: github.event.issue.pull_request != null && always()
+      run: |
+        COMMENT_URL="${{ github.event.issue.comments_url }}"
+        WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        COMMENT_TEXT="View workflow details [here]($WORKFLOW_URL)."
+        
+        curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+             -H "Accept: application/vnd.github.v3+json" \
+             -X POST "$COMMENT_URL" \
+             -d "{\"body\":\"$COMMENT_TEXT\"}"
+             
     - name: Extract Command and Directory
       id: extract
       shell: bash
@@ -66,15 +78,3 @@ runs:
       with:
         path: ${{ env.DIRECTORY }}
 
-
-    - name: Post Workflow Run Link
-      if: github.event.issue.pull_request != null && always()
-      run: |
-        COMMENT_URL="${{ github.event.issue.comments_url }}"
-        WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        COMMENT_TEXT="Workflow run completed. View the details [here]($WORKFLOW_URL)."
-        
-        curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-             -H "Accept: application/vnd.github.v3+json" \
-             -X POST "$COMMENT_URL" \
-             -d "{\"body\":\"$COMMENT_TEXT\"}"
