@@ -65,6 +65,10 @@ inputs:
   backend_type:
     description: The backend plugin name
     required: true
+  branch_to_apply:
+    description: The name of the branch to trigger an apply on.
+    required: true
+    default: "main"
     
 outputs:
   terraform:
