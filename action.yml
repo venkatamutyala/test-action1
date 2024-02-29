@@ -144,13 +144,6 @@ runs:
         workspace: ${{ inputs.workspace }}
         backend_config: ${{ inputs.backend_config }}
         backend_config_file: ${{ inputs.backend_config_file }}
-
-    # - name: Print All Versions
-    #   shell: bash
-    #   run: |
-    #     for key in $(echo '${{ toJson(steps.terraform-version.outputs) }}' | jq -r 'keys[]'); do
-    #       echo "$key: ${{ steps.terraform-version.outputs[$key] }}"
-    #     done
   
     - name: terraform plan
       if: github.event.pull_request != null
