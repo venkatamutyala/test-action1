@@ -67,24 +67,14 @@ runs:
         path: ${{ env.DIRECTORY }}
 
 
-    - name: Post Workflow Run Link to PR
-      if: always() && github.event_name == 'pull_request'
-      uses: actions/github-script@v5
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const runId = process.env.GITHUB_RUN_ID;
-          const repo = process.env.GITHUB_REPOSITORY;
-          const prNumber = context.payload.pull_request.number;
-          const commentUrl = `https://api.github.com/repos/${repo}/issues/${prNumber}/comments`;
-          const workflowRunUrl = `https://github.com/${repo}/actions/runs/${runId}`;
-
-          const comment = `Workflow run completed. Link to the run: [Workflow Run](${workflowRunUrl})`;
-
-          await github.rest.issues.createComment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            issue_number: prNumber,
-            body: comment
-          });
-
+    - name: Post Workflow Run Link
+      if: github.event.issue.pull_request != null && always()
+      run: |
+        COMMENT_URL="${{ github.event.issue.comments_url }}"
+        WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        COMMENT_TEXT="Workflow run completed. View the details [here]($WORKFLOW_URL)."
+        
+        curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+             -H "Accept: application/vnd.github.v3+json" \
+             -X POST "$COMMENT_URL" \
+             -d "{\"body\":\"$COMMENT_TEXT\"}"
