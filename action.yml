@@ -6,17 +6,65 @@ branding:
   color: 'red'
 
 inputs:
-  # common inputs
-  dockerfile:
-    description: 'The Dockerfile filename'
+  path:
+    description: Path to the Terraform configuration
     required: false
-    default: 'Dockerfile'
-
-  # ghcr
-  github_token:
-     description: "Personal Access Token (PAT) used to authenticate with the GitHub Container Registry."
-     required: false
-     default: ${{ github.token }}
+    default: .
+  workspace:
+    description: Name of the Terraform workspace
+    required: false
+    default: default
+  backend_config:
+    description: List of backend config values to set, one per line
+    required: false
+    default: ""
+  backend_config_file:
+    description: Path to a backend config file
+    required: false
+    default: ""
+  variables:
+    description: Variable definitions
+    required: false
+  var:
+    description: Comma separated list of vars to set, e.g. 'foo=bar'
+    required: false
+    default: ""
+    deprecationMessage: Use the variables input instead.
+  var_file:
+    description: List of var file paths, one per line
+    required: false
+    default: ""
+  parallelism:
+    description: Limit the number of concurrent operations
+    required: false
+    default: "0"
+  label:
+    description: A friendly name for this plan
+    required: false
+    default: ""
+  auto_approve:
+    description: Automatically approve and apply plan
+    required: false
+    default: "false"
+  target:
+    description: List of resources to target for the apply, one per line
+    required: false
+    default: ""
+  replace:
+    description: List of resources to replace if an update is required, one per line
+    required: false
+    default: ""
+  destroy:
+    description: Create and apply a plan to destroy all resources
+    required: false
+    default: "false"
+  plan_path:
+    description: Path to the plan file to apply.
+    required: false
+    default: ""
+  backend_type:
+    description: The backend plugin name
+    required: true
 
 runs:
   using: "composite"
