@@ -28,7 +28,7 @@ runs:
         WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         COMMENT_TEXT="View workflow details [here]($WORKFLOW_URL)."
         
-        curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        curl -s -H "Authorization: token ${{ inputs.github_token }}" \
              -H "Accept: application/vnd.github.v3+json" \
              -X POST "$COMMENT_URL" \
              -d "{\"body\":\"$COMMENT_TEXT\"}"
