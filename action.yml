@@ -98,41 +98,12 @@ runs:
       run: |
         COMMENT_URL="${{ github.event.issue.comments_url }}"
         WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        COMMENT_TEXT="View workflow details [here]($WORKFLOW_URL)."
+        COMMENT_TEXT="[View workflow Details Run ID: ${{ github.run_id }}]($WORKFLOW_URL)."
         
         curl -s -H "Authorization: token ${{ inputs.github_token }}" \
              -H "Accept: application/vnd.github.v3+json" \
              -X POST "$COMMENT_URL" \
              -d "{\"body\":\"$COMMENT_TEXT\"}"
-             
-    - name: Extract Command and Directory
-      id: extract
-      shell: bash
-      run: |
-        COMMENT="${{ github.event.comment.body }}"
-        DIRECTORY=""
-        
-        if [[ "$COMMENT" =~ terraform\ plan\ (.+) ]]; then
-          echo "COMMAND=plan" >> $GITHUB_ENV
-          DIRECTORY="${BASH_REMATCH[1]}"
-        elif [[ "$COMMENT" =~ terraform\ apply\ (.+) ]]; then
-          echo "COMMAND=apply" >> $GITHUB_ENV
-          DIRECTORY="${BASH_REMATCH[1]}"
-        elif [[ "$COMMENT" =~ terraform\ yolo\ (.+) ]]; then
-          echo "COMMAND=yolo" >> $GITHUB_ENV
-          DIRECTORY="${BASH_REMATCH[1]}"
-        fi
-        
-        # Trim leading and trailing whitespace (including newlines)
-        DIRECTORY=$(echo "$DIRECTORY" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # Check if DIRECTORY is empty and exit with code 1 if it is
-        if [ -z "$DIRECTORY" ]; then
-          echo "Error: No directory found."
-          exit 1
-        fi
-        
-        echo "DIRECTORY=$DIRECTORY" >> $GITHUB_ENV
         
 
     - name: Checkout
@@ -142,11 +113,33 @@ runs:
       if: env.COMMAND == 'plan'
       uses: dflook/terraform-plan@v1
       with:
-        path: ${{ env.DIRECTORY }}
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+        variables: ${{ inputs.variables }}
+        var: ${{ inputs.var }}
+        var_file: ${{ inputs.var_file }}
+        parallelism: ${{ inputs.parallelism }}
 
     - name: terraform apply
       if: env.COMMAND == 'apply'
       uses: dflook/terraform-apply@v1
       with:
-        path: ${{ env.DIRECTORY }}
+        path: ${{ inputs.path }}
+        workspace: ${{ inputs.workspace }}
+        backend_config: ${{ inputs.backend_config }}
+        backend_config_file: ${{ inputs.backend_config_file }}
+        variables: ${{ inputs.variables }}
+        var: ${{ inputs.var }}
+        var_file: ${{ inputs.var_file }}
+        parallelism: ${{ inputs.parallelism }}
+        label: ${{ inputs. }}
+        auto_approve: ${{ inputs.auto_approve }}
+        target: ${{ inputs.target }}
+        replace: ${{ inputs.replace }}
+        destroy: ${{ inputs.destroy }}
+        plan_path: ${{ inputs.plan_path }}
+
+
 
