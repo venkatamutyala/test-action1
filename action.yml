@@ -65,6 +65,28 @@ inputs:
   backend_type:
     description: The backend plugin name
     required: true
+outputs:
+  terraform:
+    description: The Terraform version used by the configuration
+  changes:
+    description: If the generated plan would update any resources or outputs this is set to `true`, otherwise it's set to `false`.
+  to_add:
+    description: The number of resources that would be added by this plan
+  to_change:
+    description: The number of resources that would be changed by this plan
+  to_destroy:
+    description: The number of resources that would be destroyed by this plan
+  plan_path:
+    description: Path to a file in the workspace containing the generated plan in an opaque binary format.
+  text_plan_path:
+    description: Path to a file in the workspace containing the generated plan in human readable format. This won't be set if the backend type is `remote` and `auto_approve` is `true`
+  json_plan_path:
+    description: Path to a file in the workspace containing the generated plan in JSON format. This won't be set if the backend type is `remote`.
+  run_id:
+    description: If the root module uses the `remote` or `cloud` backend in remote execution mode, this output will be set to the remote run id.
+  failure-reason:
+    description: The reason for the build failure. May be `apply-failed` or `plan-changed`.
+  
 
 runs:
   using: "composite"
