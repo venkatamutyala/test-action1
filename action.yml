@@ -149,7 +149,7 @@ runs:
     #     done
   
     - name: terraform plan
-      if: env.COMMAND == 'plan'
+      if: github.event.issue.pull_request != null
       uses: dflook/terraform-plan@v1
       with:
         path: ${{ inputs.path }}
