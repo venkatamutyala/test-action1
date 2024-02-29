@@ -163,7 +163,7 @@ runs:
         add_github_comment:  ${{ inputs.add_github_comment }}
 
     - name: terraform apply
-      if: github.ref_name == ${{ inputs.target_branch_to_apply }}
+      if: github.event_name == 'push' && github.ref_name == ${{ inputs.target_branch_to_apply }}
       uses: dflook/terraform-apply@v1
       with:
         path: ${{ inputs.path }}
