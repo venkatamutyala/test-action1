@@ -7,11 +7,11 @@ branding:
 
 inputs:
   path:
-    description: Path to the Terraform configuration
+    description: Path to the tofu configuration
     required: false
     default: .
   workspace:
-    description: Name of the Terraform workspace
+    description: Name of the tofu workspace
     required: false
     default: default
   backend_config:
@@ -71,8 +71,8 @@ inputs:
   
     
 outputs:
-  terraform:
-    description: The Terraform version used by the configuration
+  tofu:
+    description: The tofu version used by the configuration
   changes:
     description: If the generated plan would update any resources or outputs this is set to `true`, otherwise it's set to `false`.
   to_add:
@@ -113,8 +113,8 @@ runs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: terraform fmt
-      uses: dflook/terraform-fmt-check@v1
+    - name: tofu fmt
+      uses: dflook/tofu-fmt-check@v1
       id: fmt-check
       with:
         path: ${{ inputs.path }}
@@ -125,10 +125,10 @@ runs:
     - name: Wrong formatting found
       if: ${{ failure() && steps.fmt-check.outputs.failure-reason == 'check-failed' }}
       shell: bash
-      run: echo "Please format your terraform correctly. Use 'terraform fmt' or 'tofu fmt'"
+      run: echo "Please format your tofu correctly. Use 'tofu fmt' or 'tofu fmt'"
 
-    - name: terraform validate
-      uses: dflook/terraform-validate@v1
+    - name: tofu validate
+      uses: dflook/tofu-validate@v1
       id: Validation
       with:
         path: ${{ inputs.path }}
@@ -136,8 +136,8 @@ runs:
         backend_config: ${{ inputs.backend_config }}
         backend_config_file: ${{ inputs.backend_config_file }}
 
-    - name: Test terraform-version
-      uses: dflook/terraform-version@v1
+    - name: Test tofu-version
+      uses: dflook/tofu-version@v1
       id: Versions
       with:
         path: ${{ inputs.path }}
@@ -145,9 +145,9 @@ runs:
         backend_config: ${{ inputs.backend_config }}
         backend_config_file: ${{ inputs.backend_config_file }}
   
-    - name: terraform plan
+    - name: tofu plan
       if: github.event.pull_request != null
-      uses: dflook/terraform-plan@v1
+      uses: dflook/tofu-plan@v1
       with:
         path: ${{ inputs.path }}
         workspace: ${{ inputs.workspace }}
@@ -162,9 +162,9 @@ runs:
         destroy: ${{ inputs.destroy }}
         add_github_comment:  ${{ inputs.add_github_comment }}
 
-    - name: terraform apply
+    - name: tofu apply
       if: github.ref_name == 'main'
-      uses: dflook/terraform-apply@v1
+      uses: dflook/tofu-apply@v1
       with:
         path: ${{ inputs.path }}
         workspace: ${{ inputs.workspace }}
